@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  env-test-server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: env-test-server
+    ports:
+      - "2222:22"
+      - "80:80" 
+    environment:
+      - TZ=Europe/Moscow
+    restart: unless-stopped
