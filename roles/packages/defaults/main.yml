@@ -1,0 +1,7 @@
+---
+# Default packages to install
+packages_list:
+  - htop
+  - ncdu
+  - git
+  - nano

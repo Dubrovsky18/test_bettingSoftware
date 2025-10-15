@@ -1,0 +1,9 @@
+---
+- name: Install additional packages
+  ansible.builtin.apt:
+    name: "{{ packages_list }}"
+    state: present
+  tags:
+    - install_list
+    - role_pkg
+  become: yes
