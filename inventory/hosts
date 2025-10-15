@@ -1,0 +1,5 @@
+[test_servers]
+env-test-server ansible_host=localhost ansible_port=2222 ansible_user=ansible ansible_ssh_private_key_file=ansible_key ansible_sudo_password=password
+
+[test_servers:vars]
+ansible_python_interpreter=/usr/bin/python3
