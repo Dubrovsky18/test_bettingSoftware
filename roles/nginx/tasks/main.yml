@@ -36,6 +36,7 @@
     owner: root
     group: root
     mode: '0644'
+  notify: reload nginx
   tags:
     - role_nginx
     - config
@@ -47,6 +48,7 @@
     owner: root
     group: root
     mode: '0644'
+  notify: reload nginx
   tags:
     - role_nginx
     - config
@@ -56,6 +58,7 @@
     src: /etc/nginx/sites-available/images
     dest: /etc/nginx/sites-enabled/images
     state: link
+  notify: reload nginx
   tags:
     - role_nginx
     - link_file
@@ -65,7 +68,14 @@
   register: nginx_test
   failed_when: nginx_test.rc != 0
   changed_when: false
-  notify: restart nginx
   tags:
     - role_nginx
     - test_nginx
+
+- name: Nginx service is restarted
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+  tags:
+    - role_nginx
+    - restart_nginx
