@@ -1,0 +1,38 @@
+---
+users_custom_groups:
+  - name: developers
+    gid: 1001
+  - name: admins
+    gid: 1002
+
+users_list:
+  - name: admin
+    shell: /bin/bash
+    state: present # delete = absent
+    ssh_key: "{{ lookup('file', 'ansible_key.pub') }}"
+    password: "passwd!" 
+    groups: ["sudo", "admins"]
+  - name: developer
+    shell: /bin/zsh
+    state: present 
+    ssh_key: "{{ lookup('file', 'ansible_key.pub') }}"
+    password: "passwd!"  
+    groups: ["developers"]
+
+zsh_users: "{{ users_list | selectattr('shell', 'equalto', '/bin/zsh') | list }}"
+
+nginx_server_name: "localhost"
+nginx_static_path: "/var/www/images"
+nginx_cache_time: "1h"
+nginx_gzip_types: "text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/jpeg image/png image/gif image/svg+xml"
+
+packages_list:
+  - htop
+  - ncdu
+  - git
+  - nano
+  - curl
+  - nginx
+
+static_destination_path: "/var/www/images"
+static_source_path: "{{ playbook_dir }}/roles/static/files"
