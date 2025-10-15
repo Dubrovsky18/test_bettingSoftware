@@ -1,0 +1,71 @@
+---
+- name: Create nginx log directory
+  ansible.builtin.file:
+    path: /var/log/nginx
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  tags:
+    - role_nginx
+    - create_log_dir
+
+- name: Create static files directory
+  ansible.builtin.file:
+    path: "{{ nginx_static_path }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  tags:
+    - role_nginx
+    - mkdir_static
+
+- name: Remove default nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  tags:
+    - role_nginx
+    - remove_default_config
+
+- name: Create nginx site index
+  ansible.builtin.copy:
+    src: files/index.html
+    dest: "{{ nginx_static_path }}/index.html"
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - role_nginx
+    - config
+
+- name: Create nginx site configuration
+  ansible.builtin.template:
+    src: nginx_site.conf.j2
+    dest: /etc/nginx/sites-available/images
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - role_nginx
+    - config
+
+- name: Enable nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/images
+    dest: /etc/nginx/sites-enabled/images
+    state: link
+  tags:
+    - role_nginx
+    - link_file
+
+- name: Test nginx configuration
+  command: nginx -t
+  register: nginx_test
+  failed_when: nginx_test.rc != 0
+  changed_when: false
+  notify: restart nginx
+  tags:
+    - role_nginx
+    - test_nginx

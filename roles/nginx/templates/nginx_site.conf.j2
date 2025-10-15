@@ -1,0 +1,43 @@
+
+server {
+    listen 80;
+    server_name {{ nginx_server_name }};
+
+    root {{ nginx_static_path }};
+    index index.html index.htm;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types {{ nginx_gzip_types }};
+
+    access_log /var/log/nginx/images_access.log;
+    error_log /var/log/nginx/images_error.log;
+
+    location /images/ {
+        alias {{ nginx_static_path }}/;
+        try_files $uri $uri/ @fallback;
+
+        autoindex on;
+        autoindex_exact_size off;
+        autoindex_localtime on;
+
+        expires {{ nginx_cache_time }};
+        add_header Cache-Control "public, immutable";
+
+        add_header X-Content-Type-Options "nosniff";
+        add_header X-Frame-Options "DENY";
+    }
+
+    location @fallback {
+        rewrite ^.*$ /images/index.html last;
+    }
+
+    location = / {
+        return 301 /images/;
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

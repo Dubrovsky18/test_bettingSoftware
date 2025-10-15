@@ -1,0 +1,6 @@
+---
+# Default variables for nginx role
+nginx_server_name: "localhost"
+nginx_static_path: "/var/www/images"
+nginx_cache_time: "1h"
+nginx_gzip_types: "text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript"
