@@ -1,0 +1,4 @@
+---
+# Default variables for users role
+users_custom_groups: []
+users_list: []

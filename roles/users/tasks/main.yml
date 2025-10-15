@@ -1,0 +1,41 @@
+---
+- name: Create custom groups
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ users_custom_groups }}"
+  when: users_custom_groups is defined and users_custom_groups | length > 0
+  tags:
+    - role_users
+    - create_groups
+
+- name: Create users
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    shell: "{{ item.shell | default('/bin/bash') }}"
+    state: "{{ item.state | default('present') }}"
+    groups: "{{ item.groups | default([]) }}"
+    password: "{{ item.password | default(omit) }}"
+    append: yes
+    createhome: yes
+  loop: "{{ users_list }}"
+  when: users_list is defined and users_list | length > 0
+  tags:
+    - role_users
+    - create_users
+
+
+- name: Set up SSH keys for users
+  authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.ssh_key }}"
+    state: present
+    exclusive: yes
+  loop: "{{ users_list }}"
+  when: 
+    - users_list is defined and users_list | length > 0
+    - item.ssh_key is defined
+    - item.state | default('present') == 'present'
+  tags:
+    - role_users
+    - setup_ssh_users
