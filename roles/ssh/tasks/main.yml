@@ -1,0 +1,25 @@
+---
+- name: Configure SSH daemon settings
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    backup: yes
+  loop:
+    - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+    - { regexp: '^#?PermitEmptyPasswords', line: 'PermitEmptyPasswords no' }
+    - { regexp: '^#?LogLevel', line: 'LogLevel VERBOSE' }
+    - { regexp: '^#?X11Forwarding', line: 'X11Forwarding no' }
+  notify: restart ssh
+  tags:
+   - config_ssh
+   - role_ssh
+
+- name: Check SSH configuration
+  command: sshd -t
+  register: ssh_config_test
+  failed_when: ssh_config_test.rc != 0
+  changed_when: false
+  tags:
+    - check_ssh
+    - role_ssh
