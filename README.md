@@ -69,13 +69,6 @@ docker-compose up --build -d
 ansible-playbook site.yml
 ```
 
-## Шаг 3: Проверка результата
-- Откройте http://localhost/images/ - увидите список файлов
-- Откройте http://localhost/images/sample1.jpg - увидите изображение
-- SSH: `ssh -i ansible_key -p 2222 admin@localhost`
-
-## Готово! 🎉
-
 ## Тестирование
 
 ### Проверка веб-сервера
@@ -83,6 +76,7 @@ ansible-playbook site.yml
 - **Отдельные файлы**: http://localhost/images/filename
 - **Пример**: http://localhost/images/31638.svg
 
+## Готово! 🎉
 
 ## Конфигурация
 
