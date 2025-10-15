@@ -1,0 +1,21 @@
+---
+- name: Create static directory if it doesn't exist
+  ansible.builtin.file:
+    path: "{{ static_destination_path }}"
+    state: directory
+    mode: '0755'
+    owner: www-data
+    group: www-data
+  tags:
+    - role_static
+
+- name: Copy only .svg files to server
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ static_destination_path }}/{{ item | basename }}"
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  loop: "{{ query('fileglob', static_source_path + '/*.svg') }}"
+  tags:
+    - role_static

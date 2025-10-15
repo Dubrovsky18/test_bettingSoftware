@@ -1,0 +1,5 @@
+---
+# Default variables for static role
+static_source_path: "{{ playbook_dir }}/static"
+static_destination_path: "/var/www/images"
+static_files: []
