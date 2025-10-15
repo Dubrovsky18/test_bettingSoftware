@@ -1,0 +1,111 @@
+---
+- name: Ensure zsh is installed
+  ansible.builtin.apt:
+    name: zsh
+    state: present
+    update_cache: true
+  become: true
+
+- name: Download oh-my-zsh install.sh via URI
+  ansible.builtin.uri:
+    url: https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    method: GET
+    return_content: true
+    status_code: 200
+    timeout: 30
+    force: true
+    validate_certs: true
+  register: ohmyzsh_install_script
+  when:
+    - zsh_users is defined and zsh_users | length > 0
+
+- name: Write install.sh into user home
+  ansible.builtin.copy:
+    content: "{{ ohmyzsh_install_script.content }}"
+    dest: "/home/{{ item.name }}/install-ohmyzsh.sh"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: "0755"
+  loop: "{{ zsh_users }}"
+  when:
+    - item.shell == '/bin/zsh'
+    - item.state | default('present') == 'present'
+
+- name: Install oh-my-zsh for users with zsh shell via script
+  ansible.builtin.shell: |
+    /bin/sh "/home/{{ item.name }}/install-ohmyzsh.sh" --unattended
+  become: true
+  become_user: "{{ item.name }}"
+  args:
+    creates: "/home/{{ item.name }}/.oh-my-zsh"
+  register: ohmyzsh_result
+  failed_when: ohmyzsh_result.rc != 0 and "already installed" not in (ohmyzsh_result.stdout | default('') ~ ohmyzsh_result.stderr | default(''))
+  loop: "{{ zsh_users }}"
+  when:
+    - zsh_users is defined and zsh_users | length > 0
+    - item.shell == '/bin/zsh'
+    - item.state | default('present') == 'present'
+
+- name: Set zsh theme
+  lineinfile:
+    path: "/home/{{ item.name }}/.zshrc"
+    regexp: '^ZSH_THEME='
+    line: 'ZSH_THEME="{{ ohmyzsh_theme | default("robbyrussell") }}"'
+    create: yes 
+    backup: yes
+  become_user: "{{ item.name }}"
+  loop: "{{ zsh_users }}"
+  when:
+    - zsh_users is defined and zsh_users | length > 0
+    - item.shell == '/bin/zsh'
+    - item.state | default('present') == 'present'
+  ignore_errors: yes  
+  register: zshrc_result
+
+- name: Handle zsh theme failure 
+  ansible.builtin.file:
+    path: "/home/{{ item.name }}/.zshrc"
+    state: touch
+    mode: '0644'
+  become_user: "{{ item.name }}"
+  when:
+    - zshrc_result is failed
+    - "'No such file or directory' in zshrc_result.msg"
+  loop: "{{ zsh_users }}"
+
+- name: Retry set zsh theme after creating .zshrc
+  lineinfile:
+    path: "/home/{{ item.name }}/.zshrc"
+    regexp: '^ZSH_THEME='
+    line: 'ZSH_THEME="{{ ohmyzsh_theme | default("robbyrussell") }}"'
+    backup: yes
+  become_user: "{{ item.name }}"
+  loop: "{{ zsh_users }}"
+  when:
+    - zsh_users is defined and zsh_users | length > 0
+    - item.shell == '/bin/zsh'
+    - item.state | default('present') == 'present'
+
+- name: Configure zsh plugins
+  lineinfile:
+    path: "/home/{{ item.name }}/.zshrc"
+    regexp: '^plugins='
+    line: 'plugins=({{ ohmyzsh_plugins | default("git") | join(" ") }})'
+    create: yes
+    backup: yes
+  become_user: "{{ item.name }}"
+  loop: "{{ zsh_users }}"
+  when:
+    - zsh_users is defined and zsh_users | length > 0
+    - item.shell == '/bin/zsh'
+    - item.state | default('present') == 'present'
+
+- name: Set zsh as default shell for users
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    shell: /bin/zsh
+  loop: "{{ zsh_users }}"
+  when:
+    - zsh_users is defined and zsh_users | length > 0
+    - item.shell == '/bin/zsh'
+    - item.state | default('present') == 'present'

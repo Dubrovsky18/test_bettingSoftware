@@ -1,0 +1,6 @@
+---
+# Default variables for zsh role
+zsh_users: []
+ohmyzsh_install_path: "/home/{{ item.name }}/.oh-my-zsh"
+ohmyzsh_theme: "robbyrussell"
+ohmyzsh_plugins: ["git", "sudo"]
